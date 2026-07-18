@@ -30,7 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 2. 목표 도달 알림은 한 충전 세션에서 한 번만 실행한다.
  * 3. 감시를 시작할 때 충전기가 빠져 있으면 종료하지 않고, 충전기가 꽂히기를 기다린다.
  * 4. 한 번이라도 꽂힌 충전기가 빠지는 전환을 감지하면 자동으로 서비스를 종료한다.
- * 5. 어떤 경로로 종료되더라도 리시버, 알람음, 진동, 알림을 모두 정리한다.
+ * 5. 목표 도달 진동은 사용자가 해제하거나 충전기를 분리할 때까지 반복한다.
+ * 6. 어떤 경로로 종료되더라도 리시버, 알람음, 진동, 알림을 모두 정리한다.
  */
 class BatteryMonitorService : Service() {
 
@@ -241,7 +242,8 @@ class BatteryMonitorService : Service() {
         )
     }
 
-    // 목표 도달 시 사용자 알림을 표시하고 설정에 따라 소리와 진동을 각각 한 번 실행한다.
+    // 목표 도달 알림 자체는 충전 세션당 한 번만 발행한다.
+    // 발행된 뒤 알람음과 진동은 해제, 감시 중지 또는 충전기 분리 시점까지 계속된다.
     private fun triggerGoalReachedAlert(targetPercent: Int) {
         val notification = NotificationHelper.buildGoalReachedNotification(this, targetPercent)
         NotificationHelper.notifySafely(
@@ -254,7 +256,7 @@ class BatteryMonitorService : Service() {
             playAlarmSound()
         }
         if (settings.vibrationEnabled) {
-            vibrate()
+            startRepeatingVibration()
         }
     }
 
@@ -274,9 +276,9 @@ class BatteryMonitorService : Service() {
                 .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build()
 
-            // 일부 제조사 기본 알람음의 반복 설정 영향을 받지 않도록 앱에서는 반복 재생을 끈다.
+            // API 28 이상에서는 기본 알람음도 사용자가 해제할 때까지 반복 재생한다.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                ringtone.isLooping = false
+                ringtone.isLooping = true
             }
 
             alarmRingtone = ringtone
@@ -293,22 +295,27 @@ class BatteryMonitorService : Service() {
         alarmRingtone = null
     }
 
-    // API 31 이상은 VibratorManager, 미만은 기존 Vibrator를 사용한다.
-    private fun vibrate() {
-        val pattern = longArrayOf(0, 400, 200, 400)
+    /**
+     * 목표 도달 진동을 반복해서 실행한다.
+     *
+     * 패턴 구성: 0ms 대기 -> 500ms 진동 -> 500ms 휴식.
+     * repeatIndex를 0으로 지정했기 때문에 stopVibration()을 호출할 때까지 계속 반복된다.
+     */
+    private fun startRepeatingVibration() {
+        val pattern = longArrayOf(0, 500, 500)
+        val repeatingEffect = VibrationEffect.createWaveform(pattern, 0)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val vibratorManager = getSystemService(VibratorManager::class.java) ?: return
-            val effect = VibrationEffect.createWaveform(pattern, -1)
-            vibratorManager.vibrate(CombinedVibration.createParallel(effect))
+            vibratorManager.vibrate(CombinedVibration.createParallel(repeatingEffect))
         } else {
             @Suppress("DEPRECATION")
             val vibrator = getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+            vibrator.vibrate(repeatingEffect)
         }
     }
 
-    // 서비스가 종료될 때 진행 중인 진동도 함께 취소한다.
+    // 서비스가 종료될 때 반복 중인 진동을 반드시 취소한다.
     private fun stopVibration() {
         runCatching {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
