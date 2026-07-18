@@ -33,6 +33,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -63,21 +64,33 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ChargeBellTheme {
-                val settings = remember { SettingsRepository(this) }
+                val context = this@MainActivity
+                val settings = remember { SettingsRepository(context) }
 
-                // 최초 실행 시에는 메인 화면보다 권한 설정 화면을 먼저 보여준다.
-                // 사용자가 OS 권한 화면에서 허용 또는 거부를 선택한 뒤에만 메인 화면으로 이동한다.
+                // 이전 버전 사용자가 이미 필요한 OS 권한을 모두 허용한 상태라면
+                // 새 안내 화면을 다시 보여주지 않고 완료 상태로 자동 보정한다.
+                val permissionsAlreadyReady = remember {
+                    areRequiredOsSettingsReady(context)
+                }
+                if (permissionsAlreadyReady && !settings.permissionSetupCompleted) {
+                    settings.permissionSetupCompleted = true
+                }
+
                 var permissionSetupCompleted by remember {
-                    mutableStateOf(settings.permissionSetupCompleted)
+                    mutableStateOf(
+                        settings.permissionSetupCompleted || permissionsAlreadyReady
+                    )
                 }
 
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     if (permissionSetupCompleted) {
                         MainScreen(modifier = Modifier.padding(innerPadding))
                     } else {
-                        PermissionSetupScreen(
+                        PermissionSetupFlow(
                             modifier = Modifier.padding(innerPadding),
                             onCompleted = {
+                                // 허용과 거부 중 무엇을 선택했는지와 관계없이
+                                // OS 요청을 한 번 진행했다면 다음 실행부터 반복하지 않는다.
                                 settings.permissionSetupCompleted = true
                                 permissionSetupCompleted = true
                             }
@@ -90,62 +103,54 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * 앱 최초 실행 시 표시되는 권한 준비 화면이다.
+ * 최초 실행 때 별도의 "권한 설정 시작" 버튼을 요구하지 않고
+ * OS 알림 권한 창과 배터리 최적화 제외 화면을 자동으로 순서대로 연다.
  *
- * 진행 순서
- * 1. Android 13 이상이면 알림 권한을 OS 팝업으로 요청한다.
- * 2. 배터리 최적화 제외 여부를 OS 화면에서 선택하게 한다.
- * 3. 두 선택이 끝난 뒤에만 메인 화면을 표시한다.
- *
- * 사용자가 권한을 거부해도 앱을 강제로 막지는 않는다.
- * 여기서 중요한 것은 허용 여부가 아니라 OS 화면에서 선택을 먼저 마치는 것이다.
+ * 화면에는 권한 요청이 준비되는 짧은 시간 동안만 브랜드 안내를 표시한다.
+ * 사용자가 한 번 선택한 뒤에는 SharedPreferences 완료값 때문에 다시 나타나지 않는다.
  */
 @Composable
-private fun PermissionSetupScreen(
+private fun PermissionSetupFlow(
     modifier: Modifier = Modifier,
     onCompleted: () -> Unit
 ) {
     val context = LocalContext.current
-    var requestInProgress by remember { mutableStateOf(false) }
+    val settings = remember { SettingsRepository(context) }
+    var flowStarted by remember { mutableStateOf(false) }
 
-    // 배터리 최적화 요청 화면에서 돌아오면 허용/거부 결과와 관계없이 최초 안내를 완료한다.
-    val batteryOptimizationLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartActivityForResult()
-    ) {
-        onCompleted()
-    }
-
+    // 두 번째 단계인 배터리 최적화 제외 화면을 연다.
+    // 외부 OS 화면을 성공적으로 열기 직전에 완료값을 먼저 저장한다.
+    // 이렇게 하면 사용자가 OS 화면에서 앱을 종료해도 다음 실행 때 안내가 반복되지 않는다.
     val requestBatteryOptimization: () -> Unit = {
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val packageName = context.packageName
 
-        if (powerManager.isIgnoringBatteryOptimizations(packageName)) {
-            // 이미 제외되어 있다면 OS 화면을 다시 띄울 필요가 없다.
-            onCompleted()
-        } else {
+        settings.permissionSetupCompleted = true
+
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
             val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
                 data = "package:$packageName".toUri()
             }
 
-            // 일부 제조사 기기에서 해당 화면을 제공하지 않는 경우에도 앱이 막히지 않도록 안전하게 처리한다.
-            runCatching {
-                batteryOptimizationLauncher.launch(intent)
-            }.onFailure {
-                onCompleted()
-            }
+            // OS 화면을 연 직후 Compose 화면은 메인 화면으로 전환한다.
+            // 실제 사용자는 OS 화면을 닫은 뒤 메인 화면을 보게 된다.
+            runCatching { context.startActivity(intent) }
         }
+
+        onCompleted()
     }
 
-    // 알림 권한 결과가 돌아오면 곧바로 다음 단계인 배터리 최적화 선택 화면으로 이동한다.
+    // 첫 번째 단계인 알림 권한 요청 결과가 돌아오면 바로 두 번째 단계로 이동한다.
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) {
         requestBatteryOptimization()
     }
 
-    fun startPermissionSetup() {
-        if (requestInProgress) return
-        requestInProgress = true
+    // Composable이 처음 화면에 들어온 순간 한 번만 자동으로 권한 요청 흐름을 시작한다.
+    LaunchedEffect(Unit) {
+        if (flowStarted) return@LaunchedEffect
+        flowStarted = true
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val notificationGranted = ContextCompat.checkSelfPermission(
@@ -155,11 +160,11 @@ private fun PermissionSetupScreen(
 
             if (!notificationGranted) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                return
+                return@LaunchedEffect
             }
         }
 
-        // Android 12 이하이거나 알림 권한이 이미 허용된 경우에는 바로 다음 단계로 이동한다.
+        // Android 12 이하이거나 알림 권한이 이미 허용된 경우에는 두 번째 단계부터 진행한다.
         requestBatteryOptimization()
     }
 
@@ -170,8 +175,6 @@ private fun PermissionSetupScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterVertically)
     ) {
-        // Adaptive Icon XML은 Compose painterResource에서 직접 읽을 수 없으므로
-        // 런처 아이콘의 벡터 전경 리소스를 사용한다.
         Image(
             painter = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "ChargeBell 앱 아이콘",
@@ -185,32 +188,10 @@ private fun PermissionSetupScreen(
         )
 
         Text(
-            text = "배터리 감시를 안정적으로 유지하려면 알림 권한과 배터리 최적화 설정을 먼저 선택해야 합니다.",
+            text = "필요한 OS 권한 화면을 여는 중입니다. 선택을 마치면 메인 화면으로 이동합니다.",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center
         )
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(
-                text = "1. 알림 권한: 감시 상태와 목표 도달 알림 표시",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = "2. 배터리 최적화 제외: 화면이 꺼져도 감시 서비스 유지",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
-
-        Button(
-            onClick = { startPermissionSetup() },
-            enabled = !requestInProgress,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(text = if (requestInProgress) "권한 설정 진행 중" else "권한 설정 시작")
-        }
     }
 }
 
@@ -411,6 +392,26 @@ fun MainScreen(modifier: Modifier = Modifier) {
             Text(text = "배터리 최적화 제외 다시 요청")
         }
     }
+}
+
+/**
+ * 기존 설치 사용자가 이미 알림 권한과 배터리 최적화 제외를 모두 허용했다면
+ * 신규 완료 플래그가 없어도 안내 화면을 건너뛰기 위한 확인 함수이다.
+ */
+private fun areRequiredOsSettingsReady(context: Context): Boolean {
+    val notificationReady = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    } else {
+        true
+    }
+
+    val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+    val batteryOptimizationReady = powerManager.isIgnoringBatteryOptimizations(context.packageName)
+
+    return notificationReady && batteryOptimizationReady
 }
 
 // 시스템에게 이 앱을 배터리 최적화 대상에서 제외해 달라고 요청하는 화면을 연다.
