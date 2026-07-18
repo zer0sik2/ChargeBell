@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.ChargeBell" parent="android:Theme.Material.Light.NoActionBar" />
+    <!--
+        Compose 화면이 그려지기 전의 앱 창과 시스템 바도 항상 다크 색상으로 고정한다.
+        DayNight 또는 Light 계열 부모를 사용하지 않으므로 시스템 테마 설정에 영향을 받지 않는다.
+    -->
+    <style name="Theme.ChargeBell" parent="android:Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowActionModeOverlay">true</item>
+        <item name="android:windowBackground">#0D0D0D</item>
+        <item name="android:colorAccent">#FF7A00</item>
+        <item name="android:statusBarColor">#0D0D0D</item>
+        <item name="android:navigationBarColor">#0D0D0D</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
 </resources>
