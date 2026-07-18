@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(.\\\\gradlew.bat assembleDebug --console=plain 2>&1 | Select-Object -Last 150)",
+      "PowerShell(adb devices *)",
+      "PowerShell(& \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices -l)",
+      "PowerShell(.\\\\gradlew.bat installDebug --console=plain 2>&1 | Select-Object -Last 100)",
+      "PowerShell(& \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" shell am start -n io.github.zer0sik2.chargebell/.MainActivity)"
+    ]
+  }
+}

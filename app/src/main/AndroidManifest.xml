@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- 포그라운드 서비스를 실행하기 위한 기본 권한 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Android 14(API 34)+ 에서 "특수 목적(specialUse)" 포그라운드 서비스를 쓰기 위한 권한 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <!-- Android 13(API 33)+ 에서 알림을 띄우려면 런타임 권한이 필요함 -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 목표 % 도달 시 진동 알림을 울리기 위한 권한 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- 배터리 최적화 제외를 요청하는 시스템 다이얼로그를 띄우기 위한 권한 -->
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
+    <application
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ChargeBell">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.ChargeBell">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 배터리 상태를 감시하는 포그라운드 서비스.
+             ACTION_BATTERY_CHANGED는 매니페스트로 등록할 수 없는 브로드캐스트라서
+             여기서는 서비스 자체만 선언하고, 실제 등록은 서비스 코드 안에서 런타임으로 한다. -->
+        <service
+            android:name=".service.BatteryMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="battery-charge-monitoring" />
+        </service>
+    </application>
+
+</manifest>
