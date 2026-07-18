@@ -9,7 +9,8 @@
       "PowerShell(& \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices)",
       "PowerShell(.\\\\gradlew.bat assembleDebug --console=plain)",
       "PowerShell(& \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk; & \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" shell pm clear io.github.zer0sik2.chargebell)",
-      "PowerShell(& \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk)"
+      "PowerShell(& \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk)",
+      "PowerShell(.\\\\gradlew.bat :app:compileDebugKotlin --console=plain -q)"
     ]
   }
 }

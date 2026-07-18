@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 1. ACTION_START가 여러 번 들어와도 포그라운드 서비스와 리시버는 한 번만 준비한다.
  * 2. 목표 도달 알림은 한 충전 세션에서 한 번만 실행한다.
  * 3. 감시를 시작할 때 충전기가 빠져 있으면 종료하지 않고, 충전기가 꽂히기를 기다린다.
- * 4. 한 번이라도 꽂힌 충전기가 빠지는 전환을 감지하면 자동으로 서비스를 종료한다.
+ * 4. 충전기가 빠지는 전환을 감지하면 알람(소리, 진동, 목표 도달 알림)만 해제하고 감시는 계속한다.
  * 5. 목표 도달 진동은 사용자가 해제하거나 충전기를 분리할 때까지 반복한다.
  * 6. 어떤 경로로 종료되더라도 리시버, 알람음, 진동, 알림을 모두 정리한다.
  */
@@ -56,10 +56,6 @@ class BatteryMonitorService : Service() {
 
     // 직전 배터리 이벤트에서 충전기가 꽂혀 있었는지 기록한다.
     private var wasPlugged = false
-
-    // 이번 감시 중 충전기가 한 번이라도 꽂힌 적이 있는지 기록한다.
-    // true인 상태에서 꽂힘 -> 빠짐 전환이 발생하면 자동 종료한다.
-    private var hasSeenPluggedConnection = false
 
     // 목표 도달 알림이 한 충전 세션에서 한 번만 실행되도록 원자적으로 관리한다.
     // BroadcastReceiver는 보통 메인 스레드에서 호출되지만, 중복 방지 의도를 명확하게 하기 위해 AtomicBoolean을 사용한다.
@@ -192,7 +188,6 @@ class BatteryMonitorService : Service() {
             // 감시 시작 직후 전달되는 sticky 이벤트는 이전 상태가 없으므로 전환으로 보지 않는다.
             batteryStateInitialized = true
             wasPlugged = isPlugged
-            hasSeenPluggedConnection = isPlugged
 
             // 이미 충전기가 꽂힌 상태에서 감시를 시작했다면 이것을 새 충전 세션으로 본다.
             if (isPlugged) {
@@ -201,18 +196,16 @@ class BatteryMonitorService : Service() {
         } else {
             // 충전기가 새로 꽂힌 순간에만 새 충전 세션으로 초기화한다.
             if (isPlugged && !wasPlugged) {
-                hasSeenPluggedConnection = true
                 alreadyNotifiedThisSession.set(false)
             }
 
-            // 감시 시작 당시 미연결 상태는 종료 조건이 아니다.
-            // 실제로 꽂혀 있던 충전기가 빠지는 "true -> false" 전환만 자동 종료한다.
-            val unpluggedAfterConnection = wasPlugged && !isPlugged && hasSeenPluggedConnection
+            // 꽂혀 있던 충전기가 빠지는 "true -> false" 전환에서는 알람만 해제한다.
+            // 서비스는 계속 살아서 다음 충전 세션을 기다린다.
+            val unplugged = wasPlugged && !isPlugged
             wasPlugged = isPlugged
 
-            if (unpluggedAfterConnection) {
-                requestStop()
-                return
+            if (unplugged) {
+                stopGoalAlert()
             }
         }
 
@@ -325,6 +318,16 @@ class BatteryMonitorService : Service() {
                 (getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator)?.cancel()
             }
         }
+    }
+
+    /**
+     * 목표 도달 알람만 해제한다. 감시 자체는 계속 유지된다.
+     * 충전기 분리 시 알람음, 진동, 목표 도달 알림을 정리하는 용도로 사용한다.
+     */
+    private fun stopGoalAlert() {
+        stopAlarmSound()
+        stopVibration()
+        NotificationManagerCompat.from(this).cancel(NotificationHelper.ALERT_NOTIFICATION_ID)
     }
 
     /**
