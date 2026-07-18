@@ -12,9 +12,9 @@
 #   public *;
 #}
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Play Console 크래시 리포트에서 스택 트레이스의 줄 번호를 보기 위해 유지한다.
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
