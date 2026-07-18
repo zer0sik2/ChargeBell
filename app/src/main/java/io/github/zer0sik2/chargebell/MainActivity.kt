@@ -176,7 +176,9 @@ private fun PermissionSetupFlow(
         verticalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterVertically)
     ) {
         Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            // painterResource는 <bitmap> 래퍼 XML(ic_launcher_foreground)을 지원하지 않으므로
+            // 원본 PNG 리소스를 직접 참조한다.
+            painter = painterResource(id = R.drawable.chargebell_permission_icon),
             contentDescription = "ChargeBell 앱 아이콘",
             modifier = Modifier.size(132.dp)
         )
