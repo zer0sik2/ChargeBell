@@ -20,7 +20,8 @@
       "PowerShell(.\\\\gradlew.bat :app:bundleRelease --console=plain)",
       "PowerShell(git *)",
       "PowerShell(notepad *)",
-      "PowerShell(jarsigner *)"
+      "PowerShell(jarsigner *)",
+      "PowerShell(gh api *)"
     ]
   }
 }
