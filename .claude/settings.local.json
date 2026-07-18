@@ -16,7 +16,9 @@
       "PowerShell(.\\\\gradlew.bat :app:installDebug --console=plain -q)",
       "PowerShell(.\\\\gradlew.bat :app:assembleDebug --console=plain -q)",
       "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb install -r app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk)",
-      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb shell \"logcat -c -b crash\"; & $adb shell am start -n io.github.zer0sik2.chargebell/.MainActivity; Start-Sleep -Seconds 5; & $adb shell \"logcat -d -b crash -t 50\"; & $adb shell \"pidof io.github.zer0sik2.chargebell\")"
+      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb shell \"logcat -c -b crash\"; & $adb shell am start -n io.github.zer0sik2.chargebell/.MainActivity; Start-Sleep -Seconds 5; & $adb shell \"logcat -d -b crash -t 50\"; & $adb shell \"pidof io.github.zer0sik2.chargebell\")",
+      "PowerShell(.\\\\gradlew.bat :app:bundleRelease --console=plain)",
+      "PowerShell(git *)"
     ]
   }
 }
