@@ -170,10 +170,10 @@ private fun PermissionSetupScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(22.dp, Alignment.CenterVertically)
     ) {
-        // 현재 프로젝트의 런처 아이콘을 사용한다.
-        // 전달받은 스토어 원본 이미지는 저장소 커넥터가 바이너리 업로드를 지원하지 않아 별도 파일로 준비한다.
+        // Adaptive Icon XML은 Compose painterResource에서 직접 읽을 수 없으므로
+        // 런처 아이콘의 벡터 전경 리소스를 사용한다.
         Image(
-            painter = painterResource(id = R.mipmap.ic_launcher),
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
             contentDescription = "ChargeBell 앱 아이콘",
             modifier = Modifier.size(132.dp)
         )
