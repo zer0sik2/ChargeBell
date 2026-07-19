@@ -21,7 +21,21 @@
       "PowerShell(git *)",
       "PowerShell(notepad *)",
       "PowerShell(jarsigner *)",
-      "PowerShell(gh api *)"
+      "PowerShell(gh api *)",
+      "Bash(git -C /c/Users/yoon0/AndroidStudioProjects/ChargeBell status --short)",
+      "Bash(git -C /c/Users/yoon0/AndroidStudioProjects/ChargeBell diff --stat)",
+      "Bash(git *)",
+      "PowerShell(& \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" devices)",
+      "PowerShell(& \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk)",
+      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb logcat -c; & $adb shell am start -n io.github.zer0sik2.chargebell/.MainActivity)",
+      "PowerShell(Start-Sleep -Seconds 8; $adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb logcat -d | Select-String -Pattern \"Ads|ads|UMP|Consent|WebView\" | Select-Object -First 40 | ForEach-Object { $_.Line })",
+      "PowerShell(Set-Content *)",
+      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb shell screencap -p /sdcard/banner_check.png; & $adb pull /sdcard/banner_check.png \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yoon0-AndroidStudioProjects-ChargeBell\\\\b3d162bf-bf27-483f-aad6-af3ba1ba4df4\\\\scratchpad\\\\banner_check.png\"; & $adb shell rm /sdcard/banner_check.png)",
+      "PowerShell(.\\\\gradlew.bat :app:assembleDebug --console=plain -q; if \\($?\\) { & \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\" install -r app\\\\build\\\\outputs\\\\apk\\\\debug\\\\app-debug.apk })",
+      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb shell am start -n io.github.zer0sik2.chargebell/.MainActivity; Start-Sleep -Seconds 7; & $adb shell input keyevent 4; Start-Sleep -Seconds 4; & $adb shell screencap -p /sdcard/exit_dialog.png; & $adb pull /sdcard/exit_dialog.png \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yoon0-AndroidStudioProjects-ChargeBell\\\\b3d162bf-bf27-483f-aad6-af3ba1ba4df4\\\\scratchpad\\\\exit_dialog.png\"; & $adb shell rm /sdcard/exit_dialog.png)",
+      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb shell input keyevent 4; Start-Sleep -Seconds 1; & $adb shell input tap 540 1240; Start-Sleep -Seconds 2; & $adb shell cmd statusbar expand-notifications; Start-Sleep -Seconds 2; & $adb shell screencap -p /sdcard/notif_check.png; & $adb pull /sdcard/notif_check.png \"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yoon0-AndroidStudioProjects-ChargeBell\\\\b3d162bf-bf27-483f-aad6-af3ba1ba4df4\\\\scratchpad\\\\notif_check.png\"; & $adb shell rm /sdcard/notif_check.png)",
+      "PowerShell(Add-Type -AssemblyName System.Drawing; $src = [System.Drawing.Image]::FromFile\\(\"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yoon0-AndroidStudioProjects-ChargeBell\\\\b3d162bf-bf27-483f-aad6-af3ba1ba4df4\\\\scratchpad\\\\notif_check.png\"\\); $crop = New-Object System.Drawing.Bitmap 400,400; $g = [System.Drawing.Graphics]::FromImage\\($crop\\); $g.DrawImage\\($src, \\(New-Object System.Drawing.Rectangle 0,0,400,400\\), \\(New-Object System.Drawing.Rectangle 40,340,200,200\\), [System.Drawing.GraphicsUnit]::Pixel\\); $crop.Save\\(\"C:\\\\Users\\\\yoon0\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-yoon0-AndroidStudioProjects-ChargeBell\\\\b3d162bf-bf27-483f-aad6-af3ba1ba4df4\\\\scratchpad\\\\notif_icon_zoom.png\"\\); $g.Dispose\\(\\); $src.Dispose\\(\\); $crop.Dispose\\(\\))",
+      "PowerShell($adb = \"$env:LOCALAPPDATA\\\\Android\\\\Sdk\\\\platform-tools\\\\adb.exe\"; & $adb shell cmd statusbar collapse; git remote -v; git diff .claude/settings.local.json)"
     ]
   }
 }
