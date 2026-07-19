@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -48,6 +50,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import io.github.zer0sik2.chargebell.ads.AdBanner
+import io.github.zer0sik2.chargebell.ads.AdsManager
+import io.github.zer0sik2.chargebell.ads.ExitAdDialog
 import io.github.zer0sik2.chargebell.data.SettingsRepository
 import io.github.zer0sik2.chargebell.notification.NotificationHelper
 import io.github.zer0sik2.chargebell.service.BatteryMonitorService
@@ -55,11 +60,20 @@ import io.github.zer0sik2.chargebell.ui.theme.ChargeBellTheme
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
+
+    // 광고 SDK 초기화(+ 필요 지역의 동의 폼)가 끝나야 true가 되며, 그 전에는 배너를 그리지 않는다.
+    private val adsReadyState = mutableStateOf(false)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         // 알림 채널은 앱과 서비스 어느 쪽이 먼저 실행되더라도 사용할 수 있도록 미리 준비한다.
         NotificationHelper.createChannels(this)
+
+        // 광고 동의 확인과 SDK 초기화를 시작한다. 완료되면 하단 배너가 나타난다.
+        AdsManager.gatherConsentAndInitialize(this) {
+            runOnUiThread { adsReadyState.value = true }
+        }
 
         enableEdgeToEdge()
         setContent {
@@ -82,7 +96,30 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val adsReady by adsReadyState
+
+                // 뒤로 가기로 앱을 나갈 때 종료 확인 팝업(광고 포함)을 먼저 보여준다.
+                // 광고 준비 전이나 권한 안내 중에는 기본 뒤로 가기 동작을 그대로 둔다.
+                var showExitDialog by remember { mutableStateOf(false) }
+                BackHandler(enabled = adsReady && permissionSetupCompleted && !showExitDialog) {
+                    showExitDialog = true
+                }
+                if (showExitDialog) {
+                    ExitAdDialog(
+                        onDismiss = { showExitDialog = false },
+                        onConfirmExit = { finish() }
+                    )
+                }
+
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    bottomBar = {
+                        // 광고 준비 완료 전에는 아무것도 그리지 않아 화면 아래 공간이 본문에 쓰인다.
+                        if (adsReady) {
+                            AdBanner(modifier = Modifier.navigationBarsPadding())
+                        }
+                    }
+                ) { innerPadding ->
                     if (permissionSetupCompleted) {
                         MainScreen(modifier = Modifier.padding(innerPadding))
                     } else {

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    AdMob ID를 한 곳에서 관리하는 파일이다.
+
+    ⚠️ 현재 값은 Google이 공개한 "테스트 전용" ID이다.
+    개발 중 실제 ID를 사용하면 본인 클릭으로 AdMob 계정이 정지될 수 있으므로
+    출시 직전까지 반드시 테스트 ID를 유지한다.
+
+    AdMob 계정을 만들고 앱을 등록하면 아래 세 값을 실제 ID로 교체한다.
+    1. admob_app_id: AdMob 콘솔 > 앱 설정 > 앱 ID (형식: ca-app-pub-XXXX~YYYY)
+    2. admob_banner_unit_id: 광고 단위 > 배너 ID (형식: ca-app-pub-XXXX/YYYY)
+    3. admob_exit_ad_unit_id: 종료 팝업용 배너 광고 단위 ID (하단 배너와 별도 단위로 만드는 것을 권장)
+-->
+<resources>
+    <string name="admob_app_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_banner_unit_id" translatable="false">ca-app-pub-3940256099942544/9214589741</string>
+    <string name="admob_exit_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+</resources>

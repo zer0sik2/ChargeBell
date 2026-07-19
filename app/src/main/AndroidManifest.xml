@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- AdMob 광고 로딩을 위한 네트워크 권한 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- 포그라운드 서비스를 실행하기 위한 기본 권한 -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <!-- Android 14(API 34)+ 에서 "특수 목적(specialUse)" 포그라운드 서비스를 쓰기 위한 권한 -->
@@ -22,6 +25,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ChargeBell">
+
+        <!-- AdMob 앱 ID. 실제 값은 res/values/ads.xml에서 관리한다. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="@string/admob_app_id" />
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -39,6 +39,9 @@ object NotificationHelper {
 
     private const val STOP_ACTION_REQUEST_CODE = 1001
 
+    // 알림 헤더에서 작은 아이콘 실루엣에 입혀지는 색. 런처 아이콘의 주황색과 맞춘다.
+    private val BRAND_COLOR = 0xFFF89B1B.toInt()
+
     /**
      * 앱 또는 서비스가 시작될 때 알림 채널을 준비한다.
      * 같은 ID의 채널을 다시 생성해도 Android가 안전하게 처리하므로 여러 번 호출해도 된다.
@@ -108,14 +111,15 @@ object NotificationHelper {
         targetPercent: Int
     ): Notification {
         return NotificationCompat.Builder(context, SERVICE_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_chargebell)
+            .setColor(BRAND_COLOR)
             .setContentTitle("배터리 감시 중")
             .setContentText("현재 ${currentPercent}% / 목표 ${targetPercent}%")
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setContentIntent(contentIntent(context))
             .addAction(
-                R.drawable.ic_launcher_foreground,
+                R.drawable.ic_stat_chargebell,
                 "해제",
                 stopMonitoringIntent(context)
             )
@@ -126,14 +130,15 @@ object NotificationHelper {
     // 목표 퍼센트 도달 시 사용자에게 보여주는 알림이다.
     fun buildGoalReachedNotification(context: Context, targetPercent: Int): Notification {
         return NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_stat_chargebell)
+            .setColor(BRAND_COLOR)
             .setContentTitle("목표 충전량 도달!")
             .setContentText("배터리가 목표치인 ${targetPercent}%에 도달했습니다. 충전기를 분리해주세요.")
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(contentIntent(context))
             .addAction(
-                R.drawable.ic_launcher_foreground,
+                R.drawable.ic_stat_chargebell,
                 "해제",
                 stopMonitoringIntent(context)
             )

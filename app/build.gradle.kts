@@ -27,8 +27,10 @@ android {
         applicationId = "io.github.zer0sik2.chargebell"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        // versionCode 1은 광고 없는 첫 비공개 테스트 버전으로 이미 빌드되어 있다.
+        // 광고가 포함된 이 코드부터는 2를 사용한다.
+        versionCode = 2
+        versionName = "1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -73,6 +75,8 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.play.services.ads)
+    implementation(libs.user.messaging.platform)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
