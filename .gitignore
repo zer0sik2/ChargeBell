@@ -1,23 +1,22 @@
-*.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
+# --- 빌드 산출물 ---
+**/build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 
-local.properties
+# --- 로컬 도구 상태 ---
 .gradle/
 .idea/
-**/build/
+.kotlin/
+*.iml
+.DS_Store
+.claude/settings.local.json
+
+# --- 비밀값 (절대 커밋 금지) ---
+# local.properties: SDK 경로
+# keystore.properties / *.jks: 업로드 서명 키. 유출되면 앱 업데이트 권한이 넘어간다.
+# 설정 양식은 keystore.properties.example로 따로 커밋해 둔다.
+local.properties
+keystore.properties
 *.jks
 *.keystore
-keystore.properties
